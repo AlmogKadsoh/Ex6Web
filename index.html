@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products with Pagination</title>
+    <link rel="stylesheet" href="inc/loading.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+    <script>
+      // Corrected the limit in the URL to be dynamic based on itemsPerPage
+      const baseUrl = "https://dummyjson.com/products";
+      let currentPageNumber = 1;
+      const maxItemsPerPage = 10;
+      const opt = { mode: "cors" };
+
+      $(() => {
+        fetchText1();
+      });
+
+      const fetchText1 = async () => {
+        const skip = (currentPageNumber - 1) * maxItemsPerPage;
+        const urlWithParams = `${baseUrl}?limit=${maxItemsPerPage}&skip=${skip}`;
+        try {
+          const response = await fetch(urlWithParams, opt);
+          const data = await response.json();
+          createTable(data);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      const createTableHeader = () => {
+        const tr = $("<tr>");
+        const headers = ["ID", "Title", "Price", "Brand"];
+        headers.forEach(header => {
+          const th = $("<th/>").addClass("bg-green-100 px-4 py-2 text-left text-lg").text(header);
+          tr.append(th);
+        });
+        return tr;
+      }
+
+      const createRow = (dataRow, rowIndex) => {
+        const tr = $("<tr/>").addClass("border-b hover:bg-green-100");
+        const id = (currentPageNumber - 1) * maxItemsPerPage + rowIndex + 1;
+        tr.append($("<td/>").addClass("px-10 py-5").text(id));
+        tr.append($("<td/>").addClass("px-10 py-5").text(dataRow.title));
+        tr.append($("<td/>").addClass("px-10 py-5").text(dataRow.price));
+        tr.append($("<td/>").addClass("px-10 py-5").text(dataRow.brand));
+        return tr;
+      }
+
+      const createTable = (data) => {
+        const container = $("#myTable").empty();
+        const table = $("<table/>").addClass("table table-bordered table-hovered");
+        table.append(createTableHeader());
+
+        data.products.forEach((dataRow, index) => {
+          const tr = createRow(dataRow, index);
+          table.append(tr);
+        });
+
+        container.append(table);
+        updatePagination(data.total); // Assuming 'total' is provided in the data
+      }
+
+      const updatePagination = (totalProducts) => {
+        const pagination = $("#pagination").empty();
+        if (currentPageNumber > 1) {
+          $("<button/>").addClass("px-4 py-2 bg-blue-100 hover:bg-blue-200")
+            .text("Previous")
+            .click(() => {
+              currentPageNumber--;
+              fetchText1();
+            }).appendTo(pagination);
+        }
+
+        const totalPages = Math.ceil(totalProducts / maxItemsPerPage);
+        if (currentPageNumber < totalPages) {
+          $("<button/>").addClass("px-4 py-2 bg-black-200 hover:bg-black-300")
+            .text("Next")
+            .click(() => {
+              currentPageNumber++;
+              fetchText1();
+            }).appendTo(pagination);
+        }
+      }
+    </script>
+</head>
+<body>
+    <div id="myTable"></div>
+    <div id="pagination"></div>
+    <script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+</html>
